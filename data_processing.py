@@ -1,11 +1,44 @@
 import mido
 import copy
+import os
+'''
+ERRATA
+Data Strip 
+	Time Signauture 4/4
+	number of tracks (contains melody )
+
+Reduce the number of vector indices
+	Find max and min notes
+	map them to the array
+	map them back to their normal values
+
+transpose to C major
+'''
+
+
+
 
 
 
 def transpose(key):
-	key_arr = ["C","D","E","F","G","A","B"]
-	pass
+	"""returns the transpose offset given a key"""
+	
+	key_arr_major_sharp = ["C" , "C#", "D", "D#", "E", "F", "F#", "G" ,"G#", "A" , "A#", "B"]
+	key_arr_major_flat = ["C" , "Db","D", "Eb", "E", "F", "Gb", "G" ,"Ab", "A" , "Bb", "B"]
+	key_arr_minor_sharp = ["A" , "A#", "B","C" , "C#","D", "D#", "E", "F", "F#", "G" ,"G#"]
+	
+	
+	if len(key) != 1:
+		if key[1] == "#":
+			return key_arr_major_sharp.index(key)
+		if key[1] == "b":
+			return key_arr_major_flat.index(key)
+		if key[1] == "m":
+			return key_arr_minor_sharp.index(key[0])	
+	else:
+		return key_arr_major_sharp.index(key)
+
+	
 
 def calculate_note(data):
 	'''
@@ -19,70 +52,62 @@ def calculate_note(data):
 
 	return result
 
+# load the path of the train_files
+train_files = os.listdir("data/Nottingham/train/")
 
-# name  of the file
-file_name = "data/Nottingham/test/ashover_simple_chords_17.mid"
+# array to store the loaded midi files
+processed_midi_files = []
+further_processing = []
 
-# open the file
-mid = mido.MidiFile(file_name)
-
-data_arr = []
 note = [0 for i in range(100)]
-
-
-			
-
-
-for msg in mid.tracks[1]:
-	if msg.type == "note_off":
-		normalized_time = (msg.time + 1) / 960
-		temp_note = copy.copy(note)
-		temp_note[msg.note] = 1
-		temp_note.append(normalized_time)
-		data_arr.append(temp_note)
-
-
-output_file = mido.MidiFile()
-output_track = mido.MidiTrack()
-
-# <meta message set_tempo tempo=500000 time=0>
-# <meta message key_signature key='E' time=0>
-# <meta message time_signature numerator=4 denominator=4 clocks_per_click=48 notated_32nd_notes_per_beat=8 time=0>
-# <meta message track_name name='Falling About' time=0>
-# <meta message end_of_track time=61465>
-
-# output_track.append(mido.Message("set_tempo", set_tempo))
-
-print("ENCODED DATA")
-print("=========================================================================")
-print(data_arr[1])
-print("=========================================================================")
-
-for data in data_arr:
-	note_value = calculate_note(data)
-	time = data[-1]
-	denormalized_time = int(time * 960 - 1)
-	on = mido.Message('note_on', note=note_value, velocity=64, time=1)
-	off = mido.Message('note_off', note=note_value, velocity=0, time=denormalized_time)
+max_note = 0
+min_note = 1000
+note_set = set()
+for file in train_files:
+	midi_load = mido.MidiFile("data/Nottingham/train/" + "/" + file)
+	temp_data_arr = []
 	
-	output_track.append(on)
-	output_track.append(off)
+	if len(midi_load.tracks) < 3:
+		further_processing.append(midi_load)
+		continue
+	
+	time_signature = midi_load.tracks[0][2].numerator
+	key_signature = midi_load.tracks[0][1].key
+	
+	if time_signature != 4:
+		continue
+
+	if key_signature != "C":
+		transpose_offset = transpose(key_signature)
+
+	for msg in midi_load.tracks[1]:
+		if msg.type == "note_off":
+			note_value = msg.note
+			note_set.add(note_value)
+			if note_value < min_note:
+				min_note = note_value
 
 
 
 
-output_file.tracks.append(output_track)
 
-output_file.save("test.mid")
+notes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86]
+print(len(note_set),len(notes))
 
 
-print("reconstruted track")
-print("=========================================================================")
-# Prints the reconstruted track
-for i, track in enumerate(output_file.tracks):
-    print('Track {}: {}'.format(i, track.name))
-    for msg in track:
-        print(msg)
+
+
+
+
+
+
+
+
+
+				
+
+
+
 
 
 

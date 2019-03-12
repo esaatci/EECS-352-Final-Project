@@ -59,10 +59,12 @@ train_files = os.listdir("data/Nottingham/train/")
 processed_midi_files = []
 further_processing = []
 
-note = [0 for i in range(100)]
+
 max_note = 0
 min_note = 1000
 note_set = set()
+one_hot_arr = [0 for i in range(32)]
+
 for file in train_files:
 	midi_load = mido.MidiFile("data/Nottingham/train/" + "/" + file)
 	temp_data_arr = []
@@ -84,8 +86,13 @@ for file in train_files:
 		if msg.type == "note_off":
 			note_value = msg.note
 			note_set.add(note_value)
-			if note_value < min_note:
-				min_note = note_value
+			note_index = note_value - 48
+			normalized_note_duration = float(msg.time + 1) / 960
+			encoding = copy.copy(one_hot_arr)
+			encoding[note_index] = 1
+
+			processed_midi_files.append((encoding,normalized_note_duration))
+
 
 
 

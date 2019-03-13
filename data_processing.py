@@ -16,7 +16,6 @@ transpose to C major
 '''
 
 
-
 def process_data():
 
 
@@ -59,12 +58,17 @@ def process_data():
 	processed_midi_files = []
 	further_processing = []
 
+	# constants
+	MIN_NOTE_ = 48
+	MAX_NOTE_ = 88
+	MAX_TIME_ = 960
+
 
 	max_note = 0
 	min_note = 1000
 	note_set = set()
 	notes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86]
-	one_hot_arr = [0 for i in range(41)]
+	one_hot_arr = [0 for i in range(MAX_NOTE_ - MIN_NOTE_ + 1)]
 
 	for file in train_files:
 		midi_load = mido.MidiFile("data/Nottingham/train/" + "/" + file)
@@ -87,8 +91,8 @@ def process_data():
 			if msg.type == "note_off":
 				note_value = msg.note
 				note_set.add(note_value)
-				note_index = note_value - 48
-				normalized_note_duration = float(msg.time + 1) / 960
+				note_index = note_value - MIN_NOTE_
+				normalized_note_duration = float(msg.time + 1) / MAX_TIME_
 				encoding = copy.copy(one_hot_arr)
 				encoding[note_index] = 1
 

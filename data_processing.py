@@ -64,7 +64,7 @@ def process_data():
 	min_note = 1000
 	note_set = set()
 	notes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86]
-	one_hot_arr = [0 for i in range(39)]
+	one_hot_arr = [0 for i in range(41)]
 
 	for file in train_files:
 		midi_load = mido.MidiFile("data/Nottingham/train/" + "/" + file)

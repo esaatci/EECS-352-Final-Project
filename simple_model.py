@@ -10,14 +10,14 @@ from keras.utils import to_categorical
 from keras.callbacks import ModelCheckpoint
 import numpy as np
 import argparse
-from data_processing import process_data
-
+from data_processing import process_data,reverse_melody
+import random
 """To run this code, you'll need to first download and extract the text dataset
     from here: http://www.fit.vutbr.cz/~imikolov/rnnlm/simple-examples.tgz. Change the
     data_path variable below to your local exraction path"""
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
-data_path = "/Users/ardagenc/Desktop/eecs352/adventures-in-ml-code/simple-examples/data_modified"
+data_path = "model_data"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('run_opt', type=int, default=1, help='An integer: 1 to train, 2 to test')
@@ -77,6 +77,11 @@ if args.data_path:
 
 train_data, test_data, valid_data, num_notes = process_data()
 
+train_set = set(train_data)
+
+valid_data = [data for data in valid_data if data in train_set]
+test_data = [data for data in test_data if data in train_set]
+
 class KerasBatchGenerator(object):
 
     def __init__(self, data, num_steps, batch_size, num_notes, skip_step=5):
@@ -111,8 +116,8 @@ class KerasBatchGenerator(object):
                 self.current_idx += self.skip_step
             yield x, y
 
-num_steps = 30
-batch_size = 20
+num_steps = 10
+batch_size = 30
 train_data_generator = KerasBatchGenerator(train_data, num_steps, batch_size, num_notes,
                                            skip_step=num_steps)
 valid_data_generator = KerasBatchGenerator(valid_data, num_steps, batch_size, num_notes,
@@ -142,41 +147,43 @@ if args.run_opt == 1:
     model.save(data_path + "final_model.hdf5")
 elif args.run_opt == 2:
     model = load_model(data_path + "/model-40.hdf5")
-    dummy_iters = 40
-    example_training_generator = KerasBatchGenerator(train_data, num_steps, 1, num_notes,
-                                                     skip_step=1)
-    print("Training data:")
-    for i in range(dummy_iters):
-        dummy = next(example_training_generator.generate())
-    num_predict = 10
-    true_print_out = "Actual words: "
-    pred_print_out = "Predicted words: "
-    for i in range(num_predict):
-        data = next(example_training_generator.generate())
-        prediction = model.predict(data[0])
-        predict_word = np.argmax(prediction[:, num_steps-1, :])
-        true_print_out += reversed_dictionary[train_data[num_steps + dummy_iters + i]] + " "
-        pred_print_out += reversed_dictionary[predict_word] + " "
-    print(true_print_out)
-    print(pred_print_out)
+    # dummy_iters = 40
+    # example_training_generator = KerasBatchGenerator(train_data, num_steps, 1, num_notes,
+                                                     # skip_step=1)
+    # print("Training data:")
+    # for i in range(dummy_iters):
+    #     dummy = next(example_training_generator.generate())
+    # num_predict = 10
+    # true_print_out = "Actual words: "
+    # pred_print_out = "Predicted words: "
+    # for i in range(num_predict):
+    #     data = next(example_training_generator.generate())
+    #     prediction = model.predict(data[0])
+    #     predict_word = np.argmax(prediction[:, num_steps-1, :])
+    #     true_print_out += reversed_dictionary[train_data[num_steps + dummy_iters + i]] + " "
+    #     pred_print_out += reversed_dictionary[predict_word] + " "
+    # print(true_print_out)
+    # print(pred_print_out)
     # test data set
-    dummy_iters = 40
+    dummy_iters = random.randint(40,100)
+
     example_test_generator = KerasBatchGenerator(test_data, num_steps, 1, num_notes,
                                                      skip_step=1)
-    print("Test data:")
+    
     for i in range(dummy_iters):
         dummy = next(example_test_generator.generate())
-    num_predict = 10
-    true_print_out = "Actual words: "
-    pred_print_out = "Predicted words: "
+    num_predict = 32
+    note_arr = []
     for i in range(num_predict):
         data = next(example_test_generator.generate())
+        len_data = len(data)
+        rand_index = random.randint(0,len_data-1)
         prediction = model.predict(data[0])
-        predict_word = np.argmax(prediction[:, num_steps - 1, :])
-        true_print_out += reversed_dictionary[test_data[num_steps + dummy_iters + i]] + " "
-        pred_print_out += reversed_dictionary[predict_word] + " "
-    print(true_print_out)
-    print(pred_print_out)
+        predict_note = np.argmax(prediction[:, num_steps - 1, :])
+        note_arr.append(predict_note)
+
+    reverse_melody(note_arr)
+
 
 
 

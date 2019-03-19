@@ -95,9 +95,28 @@ def process_data():
 	train_data = process_files("train")
 	test_data = process_files("test")
 	valid_data = process_files("valid")
-	num_notes = MAX_NOTE_ - MIN_NOTE_ + 1
+	MIN_NOTE_ = 48
+	MAX_NOTE_ = 89
+	num_notes = MAX_NOTE_
 
 	return train_data, test_data, valid_data, num_notes
+
+def reverse_melody(note_arr):
+	output_file = mido.MidiFile()
+	output_track = mido.MidiTrack()
+
+	for note in note_arr:
+		on = mido.Message('note_on', note=note, velocity=64, time=1)
+		off = mido.Message('note_off', note=note, velocity=0, time=959)
+		output_track.append(on)
+		output_track.append(off)
+	
+	output_file.tracks.append(output_track)
+	output_file.save("test_output.mid")
+
+
+
+
 
 
 if __name__ == "__main__":

@@ -12,68 +12,17 @@ import numpy as np
 import argparse
 from data_processing import process_data,reverse_melody
 import random
-"""To run this code, you'll need to first download and extract the text dataset
-    from here: http://www.fit.vutbr.cz/~imikolov/rnnlm/simple-examples.tgz. Change the
-    data_path variable below to your local exraction path"""
+
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 data_path = "model_data"
 
 parser = argparse.ArgumentParser()
-parser.add_argument('run_opt', type=int, default=1, help='An integer: 1 to train, 2 to test')
+parser.add_argument('run_opt', type=int, default=1, help='An integer: 1 to train, 2 to generate music')
 parser.add_argument('--data_path', type=str, default=data_path, help='The full path of the training data')
 args = parser.parse_args()
 if args.data_path:
     data_path = args.data_path
-
-
-# def read_words(filename):
-'''reads text from file and returns an array of words '''
-#     with tf.gfile.GFile(filename, "r") as f:
-#         return f.read().replace("\n", "<eos>").split()
-
-
-# def build_vocab(filename):
-'''sorts words in decreasing frequency, returns a dictionary that assigns each word to a unique id based on how often it is used '''
-#     data = read_words(filename)
-
-#     counter = collections.Counter(data)
-#     count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
-
-#     words, _ = list(zip(*count_pairs))
-#     word_to_id = dict(zip(words, range(len(words))))
-
-#     return word_to_id
-
-
-# def file_to_word_ids(filename, word_to_id):
-'''returns a list of word ids for each word that is in our num_notes list'''
-#     data = read_words(filename)
-#     return [word_to_id[word] for word in data if word in word_to_id]
-
-
-# def load_data():
-''' loads training, testing, and validation data, creates a reverse dictionary that maps word id s to words'''
-#     # get the data paths
-#     train_path = os.path.join(data_path, "ptb.train.txt")
-#     valid_path = os.path.join(data_path, "ptb.valid.txt")
-#     test_path = os.path.join(data_path, "ptb.test.txt")
-
-#     # build the complete num_notes, then convert text data to list of integers
-#     word_to_id = build_vocab(train_path)
-#     train_data = file_to_word_ids(train_path, word_to_id)
-#     valid_data = file_to_word_ids(valid_path, word_to_id)
-#     test_data = file_to_word_ids(test_path, word_to_id)
-#     num_notes = len(word_to_id)
-#     reversed_dictionary = dict(zip(word_to_id.values(), word_to_id.keys()))
-
-#     print(train_data[:5])
-#     print(word_to_id)
-#     print(num_notes)
-#     print(" ".join([reversed_dictionary[x] for x in train_data[:10]]))
-#     return train_data, valid_data, test_data, num_notes, reversed_dictionary
-
-# train_data, valid_data, test_data, num_notes, reversed_dictionary = load_data()
 
 train_data, test_data, valid_data, num_notes = process_data()
 
@@ -147,24 +96,6 @@ if args.run_opt == 1:
     model.save(data_path + "final_model.hdf5")
 elif args.run_opt == 2:
     model = load_model(data_path + "/model-40.hdf5")
-    # dummy_iters = 40
-    # example_training_generator = KerasBatchGenerator(train_data, num_steps, 1, num_notes,
-                                                     # skip_step=1)
-    # print("Training data:")
-    # for i in range(dummy_iters):
-    #     dummy = next(example_training_generator.generate())
-    # num_predict = 10
-    # true_print_out = "Actual words: "
-    # pred_print_out = "Predicted words: "
-    # for i in range(num_predict):
-    #     data = next(example_training_generator.generate())
-    #     prediction = model.predict(data[0])
-    #     predict_word = np.argmax(prediction[:, num_steps-1, :])
-    #     true_print_out += reversed_dictionary[train_data[num_steps + dummy_iters + i]] + " "
-    #     pred_print_out += reversed_dictionary[predict_word] + " "
-    # print(true_print_out)
-    # print(pred_print_out)
-    # test data set
     dummy_iters = random.randint(40,100)
 
     example_test_generator = KerasBatchGenerator(test_data, num_steps, 1, num_notes,

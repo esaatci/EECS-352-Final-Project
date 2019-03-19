@@ -80,32 +80,24 @@ def process_data():
 			for msg in midi_load.tracks[1]:
 				if msg.type == "note_off":
 					note_value = msg.note
-					note_index = note_value - MIN_NOTE_
-					normalized_note_duration = np.tanh((msg.time+1) / MAX_TIME_)
-					encoding = copy.copy(one_hot_arr)
-					encoding[note_index] = 1
+					#note_index = note_value - MIN_NOTE_
+					#normalized_note_duration = np.tanh((msg.time+1) / MAX_TIME_)
+					#encoding = copy.copy(one_hot_arr)
+					#encoding[note_index] = 1
 
-					processed_midi_files.append((encoding,normalized_note_duration))
+					#processed_midi_files.append((encoding,normalized_note_duration))
+					processed_midi_files.append(note_value)
 
-			processed_midi_files.append((one_hot_arr,0.0))
+			#processed_midi_files.append((one_hot_arr,0.0))
 
 		return processed_midi_files
 
 	train_data = process_files("train")
 	test_data = process_files("test")
 	valid_data = process_files("valid")
+	num_notes = MAX_NOTE_ - MIN_NOTE_ + 1
 
-	return train_data, test_data, valid_data
-
-
-
-
-
-
-
-
-
-
+	return train_data, test_data, valid_data, num_notes
 
 
 if __name__ == "__main__":
@@ -117,10 +109,6 @@ if __name__ == "__main__":
 	print('=======================')
 	print()
 	print("valid_data",valid_data[0])
-
-	for data in train_data:
-		print(data[1])
-
 
 	
 

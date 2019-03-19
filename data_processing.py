@@ -1,6 +1,7 @@
 import mido
 import copy
 import os
+import numpy as np
 '''
 ERRATA
 Data Strip 
@@ -17,7 +18,6 @@ transpose to C major
 
 
 def process_data():
-
 
 	def transpose(key):
 		"""returns the transpose offset given a key"""
@@ -50,59 +50,78 @@ def process_data():
 				break
 
 		return result
-
-	# load the path of the train_files
-	train_files = os.listdir("data/Nottingham/train/")
-
-	# array to store the loaded midi files
-	processed_midi_files = []
-	further_processing = []
-
-	# constants
-	MIN_NOTE_ = 48
-	MAX_NOTE_ = 88
-	MAX_TIME_ = 960
-
-
-	max_note = 0
-	min_note = 1000
-	note_set = set()
-	notes = [48,50,52,53,55,57,59,60,62,64,65,67,69,71,72,74,76,77,79,81,83,84,86]
-	one_hot_arr = [0 for i in range(MAX_NOTE_ - MIN_NOTE_ + 1)]
-
-	for file in train_files:
-		midi_load = mido.MidiFile("data/Nottingham/train/" + "/" + file)
-		temp_data_arr = []
+	
+	def process_files(dir_name):
+		path = "data/Nottingham/"
+		files = os.listdir(path + dir_name + "/")
+		processed_midi_files = []
 		
-		if len(midi_load.tracks) < 3:
-			further_processing.append(midi_load)
-			continue
-		
-		time_signature = midi_load.tracks[0][2].numerator
-		key_signature = midi_load.tracks[0][1].key
-		
-		if time_signature != 4:
-			continue
+		# constants
+		MIN_NOTE_ = 48
+		MAX_NOTE_ = 88
+		MAX_TIME_ = 960
+		one_hot_arr = [0 for i in range(MAX_NOTE_ - MIN_NOTE_ + 1)]
 
-		if key_signature != "C":
-			transpose_offset = transpose(key_signature)
+		for file in files:
+			midi_load = mido.MidiFile(path + dir_name + "/" + file)
 
-		for msg in midi_load.tracks[1]:
-			if msg.type == "note_off":
-				note_value = msg.note
-				note_set.add(note_value)
-				note_index = note_value - MIN_NOTE_
-				normalized_note_duration = float(msg.time + 1) / MAX_TIME_
-				encoding = copy.copy(one_hot_arr)
-				encoding[note_index] = 1
+			if len(midi_load.tracks) < 3:
+				continue
 
-				processed_midi_files.append((encoding,normalized_note_duration))
+			time_signature = midi_load.tracks[0][2].numerator
+			key_signature = midi_load.tracks[0][1].key
 
-		processed_midi_files.append((one_hot_arr,0.0))
+			if time_signature != 4:
+				continue
+
+			if key_signature != "C":
+				transpose_offset = transpose(key_signature)
+
+			for msg in midi_load.tracks[1]:
+				if msg.type == "note_off":
+					note_value = msg.note
+					note_index = note_value - MIN_NOTE_
+					normalized_note_duration = np.tanh((msg.time+1) / MAX_TIME_)
+					encoding = copy.copy(one_hot_arr)
+					encoding[note_index] = 1
+
+					processed_midi_files.append((encoding,normalized_note_duration))
+
+			processed_midi_files.append((one_hot_arr,0.0))
+
+		return processed_midi_files
+
+	train_data = process_files("train")
+	test_data = process_files("test")
+	valid_data = process_files("valid")
+
+	return train_data, test_data, valid_data
 
 
 
-	return processed_midi_files
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+	train_data , test_data, valid_data = process_data()
+	print("train_data", train_data[0])
+	print('=======================')
+	print()
+	print("test_data",test_data[0])
+	print('=======================')
+	print()
+	print("valid_data",valid_data[0])
+
+	for data in train_data:
+		print(data[1])
+
+
 	
 
 

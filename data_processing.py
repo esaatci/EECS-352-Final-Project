@@ -36,20 +36,6 @@ def process_data():
 				return key_arr_minor_sharp.index(key[0])	
 		else:
 			return key_arr_major_sharp.index(key)
-
-		
-
-	def calculate_note(data):
-		'''
-		returns the index of the note in the array
-		'''
-		result = 0
-		for i,note in enumerate(data):
-			if note == 1:
-				result = i
-				break
-
-		return result
 	
 	def process_files(dir_name):
 		path = "data/Nottingham/"
@@ -61,6 +47,7 @@ def process_data():
 		MAX_NOTE_ = 88
 		MAX_TIME_ = 960
 		one_hot_arr = [0 for i in range(MAX_NOTE_ - MIN_NOTE_ + 1)]
+		transpose_offset = 0
 
 		for file in files:
 			midi_load = mido.MidiFile(path + dir_name + "/" + file)
@@ -79,27 +66,25 @@ def process_data():
 
 			for msg in midi_load.tracks[1]:
 				if msg.type == "note_off":
-					note_value = msg.note
-					#note_index = note_value - MIN_NOTE_
-					#normalized_note_duration = np.tanh((msg.time+1) / MAX_TIME_)
-					#encoding = copy.copy(one_hot_arr)
-					#encoding[note_index] = 1
-
-					#processed_midi_files.append((encoding,normalized_note_duration))
+					note_value = msg.note - transpose_offset
+					time_value = msg.time
 					processed_midi_files.append(note_value)
-
-			#processed_midi_files.append((one_hot_arr,0.0))
 
 		return processed_midi_files
 
 	train_data = process_files("train")
 	test_data = process_files("test")
 	valid_data = process_files("valid")
+	train_set = set(train_data)
+	valid_data = [data for data in valid_data if data in train_set]
+	test_data = [data for data in test_data if data in train_set]
+
 	MIN_NOTE_ = 48
 	MAX_NOTE_ = 89
 	num_notes = MAX_NOTE_
 
 	return train_data, test_data, valid_data, num_notes
+
 
 def reverse_melody(note_arr):
 	output_file = mido.MidiFile()
@@ -120,15 +105,16 @@ def reverse_melody(note_arr):
 
 
 if __name__ == "__main__":
-	train_data , test_data, valid_data = process_data()
-	print("train_data", train_data[0])
-	print('=======================')
-	print()
-	print("test_data",test_data[0])
-	print('=======================')
-	print()
-	print("valid_data",valid_data[0])
-
+	train_data, test_data, valid_data, num_notes = process_data()
+	
+	max_time = max(train_data,key=lambda x: x[1])
+	min_time = min(train_data,key=lambda x: x[1])
+	print("Max Time and Min Time is {}".format(max_time,min_time))
+	max_note = max(train_data,key=lambda x: x[0])
+	min_note = max(train_data,key=lambda x: x[0])
+	print("Max Note and Min Note is {}".format(max_note,min_note))
+	
+	
 	
 
 

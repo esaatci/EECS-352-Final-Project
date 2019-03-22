@@ -98,8 +98,8 @@ def process_data(data_choice):
 		train_set_time = set(train_data_time)
 		valid_data_time = [data for data in valid_data_time if data in train_set_time]
 		test_data_time = [data for data in test_data_time if data in train_set_time]
-		time_to_id = dict(zip(set(train_data_time), range(len(train_data_time))))
-		num_times = max(time_to_id.values()) + 1
+		time_to_id = dict(zip(set(train_data_time), range(len(set(train_data_time)))))
+		num_times = max(time_to_id.values()) + 1 
 		
 		train_data_time = [time_to_id[time] for time in train_data_time] 
 		valid_data_time = [time_to_id[time] for time in valid_data_time]
@@ -139,9 +139,11 @@ def write_midi(note_arr, time_arr):
 
 
 if __name__ == "__main__":
-	train_data_time,test_data_time,valid_data_time,num_time = process_data("note")
+	train_data_time,test_data_time,valid_data_time,num_times,id_to_time = process_data("time")
 
 	print(train_data_time[20:30])
+	print(id_to_time)
+	print(max(test_data_time))
 
 
 

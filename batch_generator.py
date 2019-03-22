@@ -48,3 +48,6 @@ class KerasBatchGenerator(object):
                 y[i, :, :] = to_categorical(temp_y, num_classes=self.num_notes)
                 self.current_idx += self.skip_step
             yield x, y
+
+
+            

@@ -21,7 +21,7 @@ data_path = "model_note_data"
 
 
 # Load the data
-train_data, test_data, valid_data, num_notes = process_data()
+train_data, test_data, valid_data, num_notes, MIN_NOTE_ = process_data("note")
 
 num_steps = 10
 batch_size = 30
@@ -55,3 +55,5 @@ model.fit_generator(train_data_generator.generate(), len(train_data)//(batch_siz
                     validation_data=valid_data_generator.generate(),
                     validation_steps=len(valid_data)//(batch_size*num_steps), callbacks=[checkpointer])
 model.save(data_path + "final_model.hdf5")
+
+

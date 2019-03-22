@@ -17,7 +17,7 @@ transpose to C major
 '''
 
 
-def process_data():
+def process_data(data_choice):
 
 	def transpose(key):
 		"""returns the transpose offset given a key"""
@@ -68,31 +68,64 @@ def process_data():
 				if msg.type == "note_off":
 					note_value = msg.note - transpose_offset
 					time_value = msg.time
-					processed_midi_files.append(note_value)
+					processed_midi_files.append((note_value,time_value))
 
 		return processed_midi_files
 
-	train_data = process_files("train")
-	test_data = process_files("test")
-	valid_data = process_files("valid")
-	train_set = set(train_data)
-	valid_data = [data for data in valid_data if data in train_set]
-	test_data = [data for data in test_data if data in train_set]
+	
 
+	
 	MIN_NOTE_ = 48
 	MAX_NOTE_ = 89
-	num_notes = MAX_NOTE_
 
-	return train_data, test_data, valid_data, num_notes
+	
+	
+
+	if data_choice == "note":
+		train_data_note = [data[0] - MIN_NOTE_ for data in process_files("train")]
+		test_data_note = [data[0] - MIN_NOTE_ for data in process_files("test")]
+		valid_data_note = [data[0] - MIN_NOTE_ for data in process_files("valid")]
+		train_set_note = set(train_data_note)
+		valid_data_note = [data for data in valid_data_note if data in train_set_note]
+		test_data_note = [data  for data in test_data_note if data in train_set_note]
+		num_notes = MAX_NOTE_
+		return train_data_note,test_data_note,valid_data_note,num_notes,MIN_NOTE_
+
+	elif data_choice == "time":
+		train_data_time = [data[1] for data in process_files("train")]
+		test_data_time = [data[1] for data in process_files("test")]
+		valid_data_time = [data[1] for data in process_files("valid")]
+		train_set_time = set(train_data_time)
+		valid_data_time = [data for data in valid_data_time if data in train_set_time]
+		test_data_time = [data for data in test_data_time if data in train_set_time]
+		time_to_id = dict(zip(set(train_data_time), range(len(train_data_time))))
+		num_times = max(time_to_id.values()) + 1
+		
+		train_data_time = [time_to_id[time] for time in train_data_time] 
+		valid_data_time = [time_to_id[time] for time in valid_data_time]
+		test_data_time = [time_to_id[time] for time in test_data_time]   
+		id_to_time = reverse_time(time_to_id)
+		return train_data_time,test_data_time,valid_data_time,num_times,id_to_time
+	else:
+		return Exception
+
+	
 
 
-def reverse_melody(note_arr):
+def reverse_melody(note_arr,MIN_NOTE_):
+	return [note + MIN_NOTE_ for note in note_arr]
+
+def reverse_time(time_to_id):
+	id_to_time = dict(zip(time_to_id.values(), time_to_id.keys()))
+	return id_to_time
+
+def write_midi(note_arr, time_arr):
 	output_file = mido.MidiFile()
 	output_track = mido.MidiTrack()
 
-	for note in note_arr:
+	for i,note in enumerate(note_arr):
 		on = mido.Message('note_on', note=note, velocity=64, time=1)
-		off = mido.Message('note_off', note=note, velocity=0, time=959)
+		off = mido.Message('note_off', note=note, velocity=0, time=time_arr[i])
 		output_track.append(on)
 		output_track.append(off)
 	
@@ -104,16 +137,14 @@ def reverse_melody(note_arr):
 
 
 
+
 if __name__ == "__main__":
-	train_data, test_data, valid_data, num_notes = process_data()
-	
-	max_time = max(train_data,key=lambda x: x[1])
-	min_time = min(train_data,key=lambda x: x[1])
-	print("Max Time and Min Time is {}".format(max_time,min_time))
-	max_note = max(train_data,key=lambda x: x[0])
-	min_note = max(train_data,key=lambda x: x[0])
-	print("Max Note and Min Note is {}".format(max_note,min_note))
-	
+	train_data_time,test_data_time,valid_data_time,num_time = process_data("note")
+
+	print(train_data_time[20:30])
+
+
+
 	
 	
 

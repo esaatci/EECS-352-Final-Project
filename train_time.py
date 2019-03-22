@@ -27,7 +27,7 @@ def train_time():
 	train_data, test_data, valid_data, num_times,id_to_time = process_data("time")
 
 	num_steps = 10
-	batch_size = 30
+	batch_size = 5
 
 	train_data_generator = KerasBatchGenerator(train_data, num_steps, batch_size, num_times,
 	                                           skip_step=num_steps)
@@ -58,7 +58,7 @@ def train_time():
 	                    validation_data=valid_data_generator.generate(),
 	                    validation_steps=len(valid_data)//(batch_size*num_steps), callbacks=[checkpointer])
 
-	model.save(data_path + "note_final_model.hdf5")
+	model.save(data_path + "/" + "note_final_model.hdf5")
 
 	return history_time
 

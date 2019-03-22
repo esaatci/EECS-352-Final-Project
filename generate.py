@@ -24,23 +24,24 @@ batch_size = 30
 
 # Load note Values
 note_data_path = "model_note_data"
-model_note = load_model(note_data_path + "/model-07.hdf5")
+model_note = load_model(note_data_path + "/model-50.hdf5")
 example_note_generator = KerasBatchGenerator(test_data_note, num_steps, 1, num_notes,
                                                  skip_step=1)
 # Load time Values
 time_data_path = "model_time_data"
-model_time = load_model(time_data_path + "/model-05.hdf5")
+model_time = load_model(time_data_path + "/model-50.hdf5")
 example_time_generator = KerasBatchGenerator(test_data_time, num_steps, 1, num_times,
                                                  skip_step=1)
 
 
 
-dummy_iters = random.randint(40,100)
+dummy_iters = random.randint(40,1000)
+
 for i in range(dummy_iters):
     arda = next(example_note_generator.generate())
     efe = next(example_time_generator.generate())
 
-num_predict = 64
+num_predict = 128
 note_arr = []
 time_arr = []
 

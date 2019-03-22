@@ -1,0 +1,4 @@
+Dropout = 0.5
+
+btach_size = 30
+num_steps = 10

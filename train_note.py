@@ -13,6 +13,7 @@ import argparse
 from data_processing import process_data,reverse_melody
 from batch_generator import KerasBatchGenerator
 import random
+import pickle
 
 
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
@@ -24,7 +25,7 @@ def train_note():
 	train_data, test_data, valid_data, num_notes, MIN_NOTE_ = process_data("note")
 
 	num_steps = 10
-	batch_size = 30
+	batch_size = 5
 
 	train_data_generator = KerasBatchGenerator(train_data, num_steps, batch_size, num_notes,
 	                                           skip_step=num_steps)
@@ -54,7 +55,7 @@ def train_note():
 	history_note = model.fit_generator(train_data_generator.generate(), len(train_data)//(batch_size*num_steps), num_epochs,
 	                    validation_data=valid_data_generator.generate(),
 	                    validation_steps=len(valid_data)//(batch_size*num_steps), callbacks=[checkpointer])
-	model.save(data_path + "note_final_model.hdf5")
+	model.save(data_path + "/" + "note_final_model.hdf5")
 
 	return history_note
 
